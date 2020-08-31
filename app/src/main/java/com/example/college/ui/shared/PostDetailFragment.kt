@@ -23,6 +23,7 @@ import com.example.college.models.PostModel
 import com.firebase.ui.firestore.FirestoreRecyclerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.android.synthetic.main.fragment_post_detail.*
 
 class PostDetailFragment : Fragment() {
 
@@ -35,7 +36,7 @@ class PostDetailFragment : Fragment() {
     private lateinit var caption : TextView
     private lateinit var likes : TextView
     private lateinit var commentRv : RecyclerView
-
+    private var commentsList: ArrayList<CommentModel> = ArrayList()
     private var likesCount : Int? = 0
     private var liked : Boolean = false
 
@@ -48,7 +49,14 @@ class PostDetailFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_post_detail, container, false)
+        return  view
 
+
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        super.onViewCreated(view, savedInstanceState)
         //initializing
         image = view.findViewById(R.id.post_image_detail)
         likeBtn = view.findViewById(R.id.like_button)
@@ -58,8 +66,60 @@ class PostDetailFragment : Fragment() {
         likes = view.findViewById(R.id.likes_count)
 
 
-        commentRv = view.findViewById(R.id.comments_rv)
-        setupComments(args.postDetailArgs.timestamp.toString())
+//        commentRv = view.findViewById(R.id.comments_rv)
+//        val query = FirebaseFirestore.getInstance()
+//            .collection("classes")
+//            .document(requireActivity().intent.getStringExtra("class")!!)
+//            .collection("posts")
+//            .document(args.postDetailArgs.timestamp.toString())
+//            .collection("comments")
+//
+//
+//        val options = FirestoreRecyclerOptions.Builder<CommentModel>()
+//            .setQuery(query, CommentModel::class.java)
+//            .build()
+
+        FirebaseFirestore.getInstance()
+            .collection("classes")
+            .document(requireActivity().intent.getStringExtra("class")!!)
+            .collection("posts")
+            .document(args.postDetailArgs.timestamp.toString())
+            .collection("comments").get().addOnSuccessListener {
+                Log.d("Hello",it.documents.toString())
+                var list = it.documents
+                if(list.isNotEmpty()){
+                    for(d in list){
+                        var comment = d.toObject(CommentModel::class.java)
+                        commentsList.add(comment!!)
+
+                    }
+                    commentAdapter = CommentAdapter(commentsList)
+
+                    comments_rv.layoutManager = LinearLayoutManager(
+                        requireContext(),
+                        RecyclerView.VERTICAL,
+                        false
+                    )
+
+                    comments_rv.adapter = commentAdapter
+                    comments_rv.setHasFixedSize(true)
+
+                }
+            }
+
+
+
+//        commentAdapter = CommentAdapter(options)
+//
+//        comments_rv.layoutManager = LinearLayoutManager(
+//            requireContext(),
+//            RecyclerView.VERTICAL,
+//            false
+//        )
+//
+//        comments_rv.adapter = commentAdapter
+//        comments_rv.setHasFixedSize(true)
+//        setupComments(args.postDetailArgs.timestamp.toString())
 
 
         FirebaseFirestore.getInstance()
@@ -112,11 +172,10 @@ class PostDetailFragment : Fragment() {
             }
         }
 
-        commentBtn.setOnClickListener {
-            addComment(inflater)
-        }
+//        commentBtn.setOnClickListener {
+//            addComment(inflater)
+//        }
 
-        return view
     }
 
     private fun addComment(inflater : LayoutInflater) {
@@ -156,34 +215,34 @@ class PostDetailFragment : Fragment() {
         }
     }
 
-    private fun setupComments(post : String) {
-
-        val query = FirebaseFirestore.getInstance()
-            .collection("classes")
-            .document(requireActivity().intent.getStringExtra("class")!!)
-            .collection("posts")
-            .document(post)
-            .collection("comments")
-
-        val options = FirestoreRecyclerOptions.Builder<CommentModel>()
-            .setQuery(query, CommentModel::class.java)
-            .build()
-
-        commentAdapter = CommentAdapter(options)
-
-        commentRv.layoutManager = LinearLayoutManager(
-            requireContext(),
-            RecyclerView.VERTICAL,
-            false
-        )
-
-        commentRv.adapter = commentAdapter
-        commentRv.setHasFixedSize(true)
-
-    }
+//    private fun setupComments(post : String) {
+//
+//        val query = FirebaseFirestore.getInstance()
+//            .collection("classes")
+//            .document(requireActivity().intent.getStringExtra("class")!!)
+//            .collection("posts")
+//            .document(post)
+//            .collection("comments")
+//
+//        val options = FirestoreRecyclerOptions.Builder<CommentModel>()
+//            .setQuery(query, CommentModel::class.java)
+//            .build()
+//        Log.d("User",options.toString())
+//        commentAdapter = CommentAdapter(options)
+//
+//        commentRv.layoutManager = LinearLayoutManager(
+//            requireContext(),
+//            RecyclerView.VERTICAL,
+//            false
+//        )
+//
+//        commentRv.adapter = commentAdapter
+//        commentRv.setHasFixedSize(true)
+//
+//    }
 
     override fun onStart() {
         super.onStart()
-        commentAdapter.startListening()
+//        commentAdapter.startListening()
     }
 }
